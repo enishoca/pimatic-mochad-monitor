@@ -1,6 +1,6 @@
 module.exports = {
   title: "pimatic-mochad-monitor device config schemas"
-  Mochad:
+  MochadMonitor:
     title: "Mochad Monitor config options"
     type: "object"
     properties:

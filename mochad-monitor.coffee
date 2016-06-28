@@ -1,5 +1,4 @@
-# Mochad plugin
-
+# MochadMonitor plugin
 module.exports = (env) ->
 
   # Require lodash
@@ -7,12 +6,11 @@ module.exports = (env) ->
 
   # Require the bluebird promise library
   Promise = env.require 'bluebird'
-
-  # Require (internal lib) [matcher](https://github.com/pimatic/pimatic/blob/master/lib/matcher.coffee)
-  M = env.matcher
-
+ 
   # Require [reconnect-net](https://www.npmjs.org/package/reconnect-net)
   reconnect = require 'reconnect-net'
+
+  fs = require "fs"
 
   # ###Plugin class
   class MochadMonitorPlugin extends env.plugins.Plugin
@@ -27,7 +25,7 @@ module.exports = (env) ->
     #
     init: (app, @framework, config) =>
 
-      deviceConfigDef = require("./device-config-schema")
+      deviceConfigSchema = require("./device-config-schema")
 
       @framework.deviceManager.registerDeviceClass("MochadMonitor", {
         configDef: deviceConfigSchema.MochadMonitor,
@@ -36,8 +34,8 @@ module.exports = (env) ->
 
 
 
-  # #### Mochad class
-  class Mochad extends env.devices.Sensor
+  # #### MochadMonitor class
+  class MochadMonitor extends env.devices.Sensor
 
     # ####constructor()
     #
@@ -73,7 +71,6 @@ module.exports = (env) ->
 
         conn.on 'data', ((data) ->
           lines = data.toString()
-
           env.logger.debug(lines)
           
           fs.appendFile @logfile, lines, (error) ->
@@ -85,7 +82,6 @@ module.exports = (env) ->
       reconnector.on 'connect', ((connection) ->
         env.logger.info("(re)Opened connection")
         @connection = connection
-        @sendCommand("st")
       ).bind(@)
 
       reconnector.on 'disconnect', ((err) ->
