@@ -1,5 +1,5 @@
 module.exports = {
-  title: "mochad config"
+  title: "mochad-monitor config"
   type: "object"
   properties: {}
 }

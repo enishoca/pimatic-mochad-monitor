@@ -1,13 +1,17 @@
-[![NPM version](https://badge.fury.io/js/pimatic-mochad.svg)](http://badge.fury.io/js/pimatic-mochad)
+pimatic-mochad-monitor
+======================
 
-pimatic-mochad
-==============
-
-Connects [pimatic](http://pimatic.org) to [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller)
+Connects [pimatic](http://pimatic.org) to [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) and monitors all X10 devices and sensors.
 
 #### Description
 
-pimatic-mochad gives you control over your X10-units via RF (433 Mhz), powerline (PL) and pimatic(-mobile-frontend)
+pimatic-mochad-monitor gives you the abililty to monitor a all activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL).  Mochad already translates the X10 activity to plain text format, this plugin simply listens to Mochad and logs that activity. You can then use the [pimatic-log-reader](https://pimatic.org/plugins/pimatic-log-reader) plugin to parse the log and create devices and attributes and use the excellent pimatic rules engine to drive other devices.
+
+X-10 has been around forever, I have used X-10 equipment for over 20 years. and there is lot inexpensive X-10 equipment in circulation. However, mantaining true state of X-10 devices in software has always been challenging and buggy. There are also connectivity issues and endless frustration with getting the X-10 signals especially over powerline to the right devices.  There is one area where X-10 shines and that is in RF remotes and sensors, the RF remotes last forever, signal can usually cover most mid-sized houses, repeaters are abundantly available.  Their motion sensors have been time tested and battries last for a year or so.
+
+Examples:
+ - Use cheap X-10 rf remotes to control devices
+ - Use X-10 motion sensors and integrate them to trigger other devices or log the data
 
 #### Hardware schematic
 
@@ -33,21 +37,17 @@ pimatic-mochad gives you control over your X10-units via RF (433 Mhz), powerline
  [1] Or even OpenWrt (, etc) running Mochad                                    
 ```
 
-#### Contemplations
-
-I've choosen [mochad](http://sourceforge.net/apps/mediawiki/mochad) over [node-x10](https://github.com/randallagordon/node-x10/) because mochad allows us to run pimatic on a different host as the X10 controller is attached to. For example, you can run your mochad instance on OpenWrt, while running pimatic on your [Raspberry Pi](http://raspberrypi.org). 
-
 #### Configuration
 
 Under "plugins" add:
 
 ```
 {
-  "plugin": "mochad"
+  "plugin": "mochad-monitor"
 }
 ```
 
-Under "devices" add (something like):
+Add the following under "devices":
 
 ```
 {
@@ -56,34 +56,89 @@ Under "devices" add (something like):
   "name": "CM15Pro",
   "host": "192.168.1.11",
   "port": 1099,
-  "units": [
-    {
-      "id": "light-kitchen",
-      "class": "MochadSwitch",
-      "name": "Kitchen Light",
-      "housecode": "P",
-      "unitcode": 1,
-      "protocol": "pl"
-    },  
-    {
-      "id": "light-living",
-      "class": "MochadSwitch",
-      "name": "Living Light",
-      "housecode": "P",
-      "unitcode": 2,
-      "protocol": "rf"
-    }
-  ]
+  "logfile:" "/var/logs/mochad.log"
 }   
 ```
 
-#### Some cool rules
+#### Usage Example
 
-```if it is 18:00 then turn Kitchen Light on```
+I would like my motion sensor X-10 device I-1 to turn the hallway light on and off
 
-~~```if button "All lights off" is pressed then tell CM15Pro to send "pl a all_lights_off"```~~
+Add the following under devices - make sure pimatic-log-reader plugin has been installed, and you have verified that the mochad-monitor is successfully logging to the file.
 
-~~```if it is after 23:00 and CM15Pro receives event "rf a all_lights_off" then push title:"Good nigth!" message:"Sleep well, sir!"```~~
+```
+    {
+      "id": "hall-motion-sensor",
+      "name": "Hall Sensor",
+      "class": "LogWatcher",
+      "file": "/var/logs/mochad.log",
+      "attributes": [
+        {
+          "name": "TriggerState",
+          "type": "boolean",
+          "labels": [
+            "switched on",
+            "switched off"
+          ]
+        }
+      ],
+      "lines": [
+        {
+          "match": "HouseUnit: I1 Func: On",
+          "Presence": true
+        },
+        {
+          "match": "HouseUnit: I1 Func: Off",
+          "Presence": false
+        }
+      ]
+    },
+```
 
-~~```if CM15Pro receives event "rf a9 on" then turn Kitchen Light off and turn Living Light on```~~
+Add the following rules 
+
+``` 
+  "when TriggerState of hall-motion-sensor is switched on then turn hall on"
+ 
+  "when TriggerState of hall-motion-sensor is switched off then turn hall off",
+
+```
+
+Some interesting lines from mochad logs
+
+Respone to 'st' command to check status (mochad only remember status of commands it has seen, may not be true status of devices)
+```  
+          # 06/04 21:50:55 Device status
+          # 06/04 21:50:55 House A: 1=1
+          # 06/04 21:50:55 House P: 1=1,2=0,3=1,4=0,5=1,6=0,7=0,8=0,9=0,10=0,11=0,12=0,13=0,14=0,15=0,16=0
+          # 06/04 21:50:55 Security sensor status
+
+```
+
+Handling all-units-on/off
+```
+          #  example: 05/22 00:34:04 Rx PL House: P Func: All units on
+          #  example: 05/22 00:34:04 Rx PL House: P Func: All units off
+          # example2: 00:04:29.391 [pimatic-mochad] 09/02 00:04:29 Rx PL House: P Func: All units off
+          # example2: 00:04:29.391 [pimatic-mochad]>
+```
+
+Handling simple on/off (RF-style)
+``` 
+          # 11/30 17:57:12 Tx RF HouseUnit: A10 Func: On
+          # 11/30 17:57:24 Tx RF HouseUnit: A10 Func: Off
+```
+Handling simple on/off (PL-style)
+```
+          #  example: 05/30 20:59:20 Tx PL HouseUnit: P1
+          #  example: 05/30 20:59:20 Tx PL House: P Func: On
+          #  example2: 23:42:03.196 [pimatic-mochad] 09/01 23:42:03 Tx PL HouseUnit: P1
+          #  example2: 23:42:03.196 [pimatic-mochad]>
+          #  example2: 23:42:03.198 [pimatic-mochad] 09/01 23:42:03 Tx PL House: P Func: On
+```
+ 
+#### Credits
+
+This plugin has been derived from [pimatic-mochad](https://pimatic.org/plugins/pimatic-mochad) plugin by [Patrick Kuijvenhoven](https://github.com/petski)  
+
 

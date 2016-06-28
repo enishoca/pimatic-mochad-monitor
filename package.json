@@ -1,19 +1,28 @@
 {
-  "configSchema": "mochad-config-schema.coffee",
-  "name": "pimatic-mochad",
-  "description": "Connects pimatic to mochad (an X10-controller controller)",
+  "configSchema": "mochad-monitor-config-schema.coffee",
+  "name": "pimatic-mochad-monitor",
+  "description": "Logs mochad data (an X10-controller controller) in file",
   "keywords" : [
     "pimatic",
     "x10",
+    "sensors",
+    "remotes",
+    "automation",
+    "home automation"
     "devices"
   ],
   "author": {
-    "name": "Patrick Kuijvenhoven",
-    "email": "patrick.kuijvenhoven@gmail.com",
-    "url": "https://github.com/petski"
+    "name": "Enis Hoca",
+    "email": "enis.hoca@outlook.com",
+    "url": "https://github.com/enishoca"
   },
-  "npmUser": "petski",
+  "npmUser": "enishoca",
   "contributors": [
+    {
+      "name": "Patrick Kuijvenhoven",
+      "email": "patrick.kuijvenhoven@gmail.com",
+      "url": "https://github.com/petski"
+    },
     {
       "name": "Eric Dorsey",
       "url": "https://github.com/edorsey"
@@ -21,24 +30,23 @@
   ],
   "main": "mochad.coffee",
   "files": [
-    "app",
     "README.md",
     "mochad.coffee",
     "mochad-config-schema.coffee",
     "mochad-device-schema.coffee"
   ],
-  "version": "0.8.3",
-  "homepage": "https://github.com/petski/pimatic-mochad",
+  "version": "0.1.0",
+  "homepage": "https://github.com/enishoca/pimatic-mochad-monitor",
   "repository": {
-    "type": "git",
-    "url": "git://github.com/petski/pimatic-mochad.git"
+    "type": "git",  
+    "url": "git://github.com/enishoca/pimatic-mochad-monitor.git"
   },
   "license": "GPL-2.0",
   "dependencies": {
     "reconnect-net": "~0.0.0"
   },
   "peerDependencies": {
-    "pimatic": "0.8.*"
+    "pimatic": ">0.9.*"
   },
   "engines": {
     "node": ">0.10.x",
