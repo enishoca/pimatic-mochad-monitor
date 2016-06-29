@@ -1,11 +1,11 @@
-pimatic-mochad-monitor
+pimatic-mochad-simple
 ======================
 
 Connects [pimatic](http://pimatic.org) to [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) and monitors all X10 devices and sensors.
 
 #### Description
 
-pimatic-mochad-monitor gives you the abililty to monitor activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL) interfaces.  Mochad already translates the X10 activity to plain text format, this plugin simply listens to Mochad and logs that activity to a file. You can then use the [pimatic-log-reader](https://pimatic.org/plugins/pimatic-log-reader) plugin to parse the log and create devices and attributes and use the excellent pimatic rules engine to drive other things.
+pimatic-mochad-simple gives you the abililty to monitor activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL) interfaces.  Mochad already translates the X10 activity to plain text format, this plugin simply listens to Mochad and logs that activity to a file. You can then use the [pimatic-log-reader](https://pimatic.org/plugins/pimatic-log-reader) plugin to parse the log and create devices and attributes and use the excellent pimatic rules engine to drive other things.
 
 X-10 has been around forever, I have used X-10 equipment for over 20 years. and there is lot inexpensive X-10 equipment in circulation. However, mantaining true state of X-10 devices in software has always been challenging and buggy. There are also connectivity issues and endless frustration with getting the X-10 signals especially over powerline to the right devices.  There is one area where X-10 shines and that is in RF remotes and sensors, the RF remotes last forever, signal can usually cover most mid-sized houses, repeaters are abundantly available.  Their motion sensors have been time tested and battries last for a year or so.
 
@@ -43,7 +43,7 @@ Under "plugins" add:
 
 ```
 {
-  "plugin": "mochad-monitor"
+  "plugin": "mochad-simple"
 }
 ```
 
@@ -52,7 +52,7 @@ Add the following under "devices":
 ```
 {
   "id": "CM15Pro",
-  "class": "MochadMonitor",
+  "class": "MochadSimple",
   "name": "CM15Pro",
   "host": "192.168.1.11",
   "port": 1099,
@@ -64,7 +64,7 @@ Add the following under "devices":
 
 Turn the hallway light on/off based on motion sensor X-10 device I-1:
 
-Add the following under devices - make sure pimatic-log-reader plugin has been installed, and you have verified that the mochad-monitor is successfully logging to the file.
+Add the following under devices - make sure pimatic-log-reader plugin has been installed, and you have verified that the mochad-simple is successfully logging to the file.
 
 ```
     {

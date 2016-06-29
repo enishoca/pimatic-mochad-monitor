@@ -1,8 +1,8 @@
 {  
-    "name": "pimatic-mochad-monitor",
+    "name": "pimatic-mochad-simple",
     "description": "Logs mochad data (an X10-controller controller) in file",  
     "author": "Enis Hoca <enis.hoca@outlook.com> (https://github.com/enishoca)",
-    "main": "mochad-monitor.coffee",
+    "main": "mochad-simple.coffee",
     "license": "GPL-2.0",
     "files": [
       "README.md",
@@ -20,13 +20,13 @@
       "devices"
     ],
     "version": "0.1.0",
-    "homepage": "https://github.com/enishoca/pimatic-mochad-monitor",
+    "homepage": "https://github.com/enishoca/pimatic-mochad-simple",
     "private": false,
     "repository": {
         "type": "git",
-        "url": "git://github.com/enishoca/pimatic-mochad-monitor.git"
+        "url": "git://github.com/enishoca/pimatic-mochad-simple.git"
     },
-    "configSchema": "mochad-monitor-config-schema.coffee",
+    "configSchema": "mochad-simple-config-schema.coffee",
     "dependencies": { 
       "reconnect-net": "~0.0.0"
     },
