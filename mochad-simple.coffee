@@ -98,6 +98,9 @@ module.exports = (env) ->
       )
       .catch((error) -> env.logger.error("Couldn't send command '#{command}': " + error))
 
+    destroy: () ->
+      super()
+
   class MochadSimpleController extends env.devices.ButtonsDevice
 
     attributes:
@@ -113,6 +116,9 @@ module.exports = (env) ->
         unitcode: "0"
       }
       super(@config)
+
+    destroy: () ->
+      super()
 
     getLastX10Message : () ->
       return Promise.resolve(@lastX10Message)
