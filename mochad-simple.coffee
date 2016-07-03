@@ -1,72 +1,61 @@
 # MochadSimple plugin
+
 module.exports = (env) ->
-
-  # Require lodash
-  _ = env.require 'lodash'
-
-  # Require the bluebird promise library
   Promise = env.require 'bluebird'
- 
-  # Require [reconnect-net](https://www.npmjs.org/package/reconnect-net)
+
+  # Require the [cassert library](https://github.com/rhoot/cassert).
+  assert = env.require 'cassert'
   reconnect = require 'reconnect-net'
 
-  EventEmitter = require('events').EventEmitter
+  _ = env.require 'lodash'
 
-
-  fs = require "fs"
-
-  # ###Plugin class
+  # the plugin class
   class MochadSimplePlugin extends env.plugins.Plugin
 
-    # ####init()
-    #
-    # #####params:
-    #  * `app` is the [express] instance the framework is using.
-    #  * `framework` the framework itself
-    #  * `config` the properties the user specified as config for your plugin in the `plugins`
-    #     section of the config.json file
-    #
-    init: (app, @framework, config) =>
-      
-      @host = @config.host
-      @port = @config.port
-
-      env.logger.info("Initiating  host='#{@host}', port='#{@port}'")
-
-      deviceConfigSchema = require("./device-config-schema")
-
-      @framework.deviceManager.registerDeviceClass("MochadSimple", {
-        configDef: deviceConfigSchema.MochadSimple,
-        createCallback: (config) => new MochadSimple(@framework, config)
-      })
-
+    init: (app, @framework, config) ->
+      env.logger.debug "MochadSimple: init"
       @connection = null
-      @emitter = new EventEmitter();
-      @initConnection(@host, @port)
+      host = config.host
+      port = config.port
+
+      env.logger.debug(
+        "MochadSimple: init with mochad server #{host}@port #{port}"
+      )
+
+      @cmdReceivers = []
+      deviceConfigDef = require("./device-config-schema")
+
+      deviceClasses = [
+        MochadSimpleController,
+        MochadSimpleSwitch
+      ]
+
+      for Cl in deviceClasses
+        do (Cl) =>
+          @framework.deviceManager.registerDeviceClass(Cl.name, {
+            configDef: deviceConfigDef[Cl.name]
+            createCallback: (deviceConfig) =>
+              device = new Cl(deviceConfig)
+              if Cl in [MochadSimpleController]
+                @cmdReceivers.push device
+              return device
+          })
 
 
-    # ####initConnection()
-    #
-    initConnection: (host, port)->
-
-      # TODO Test 1) Start with non-working connection, make connection     work
-      # TODO Test 2) Start with     working connection, make connection non-working and switch button in frontend
       reconnector = reconnect(((conn) ->
-
         # XXX Keep alive does not work [as expected](https://github.com/joyent/node/issues/6194)
         conn.setKeepAlive(true, 0)
-
         conn.setNoDelay(true)
 
         conn.on 'data', ((data) ->
           lines = data.toString()
-          env.logger.info(lines)
-          @emitter.emit("X10", lines);
+          env.logger.debug(lines)
+          @receiveCommandCallback(lines)
         ).bind(@)
       ).bind(@)).connect(port, host);
 
       reconnector.on 'connect', ((connection) ->
-        env.logger.info("(re)Opened connection")
+        env.logger.debug("(re)Opened connection")
         @connection = connection
       ).bind(@)
 
@@ -75,34 +64,22 @@ module.exports = (env) ->
         @connection = null;
       ).bind(@)
 
+    sendCommand: (command) ->
+      if @connection is null then throw new Error("No connection!")
+      env.logger.debug("Sending '#{command}'")
+      @connection.write(command + "\r\n")
 
 
-  # #### MochadSimple class
-  class MochadSimple extends env.devices.Sensor
+    receiveCommandCallback: (cmdString) =>
+      for cmdReceiver in @cmdReceivers
+        handled = cmdReceiver.handleReceivedCmd cmdString
+        break if handled
 
-    # ####constructor()
-    #
-    # #####params:
-    #  * `deviceConfig`
-    #
-    constructor: (@framework, @config) ->
-      @id        = @config.id
-      @name      = @config.name
-      @logfile   = @config.logfile
+      if (!handled)
+        env.logger.debug "received unhandled command string: #{cmdString}"
 
-      plugin.emitter.on 'X10', ((lines) ->
-        env.logger.info("in emitter handlers")
-        fs.appendFile @logfile, lines, (error) ->
-          env.logger.error("Error writing file", error) if error
-      ).bind(@)
-
-      myEventEmitter.on('X10', fnListener) ->
-                  fs.appendFile @logfile, lines, (error) ->
-            env.logger.error("Error writing file", error) if error
-
-      super()
-
-
+ 
+  # MochadSimpleSwitch sends commands to X.10 devices
   class MochadSimpleSwitch extends env.devices.PowerSwitch
 
     constructor: (@config) ->
@@ -110,25 +87,96 @@ module.exports = (env) ->
       @name = @config.name
       @housecode = @config.housecode
       @unitcode = @config.unitcode
-      @protocol - @config.protocol
- 
+      @protocol = @config.protocol
+      super()
 
-    destroy: () ->
-        super()
-
-
-    # ####changeStateTo()
-    #
-    # #####params:
-    #  * `state`
-    #
     changeStateTo: (state) ->
-      @plugin.sendCommand("#{@protocol} #{@housecode}#{@unitcode} " + ( if state then "on" else "off" ))
+      return Promise.try( =>
+        @sendCommand
+        plugin.sendCommand ("#{@protocol} #{@housecode}#{@unitcode} " + ( if state then "on" else "off" ))
+        @_setState state
+      )
+      .catch((error) -> env.logger.error("Couldn't send command '#{command}': " + error))
 
+  class MochadSimpleController extends env.devices.ButtonsDevice
 
-    
-  # ###Finally
-  # Create a instance of my plugin
+    attributes:
+      lastX10Message:
+        description: "Contains the last X10 message recieved"
+        type: "string"
+
+    _lastX10Message = ""
+
+    constructor: (@config) ->
+      @_lastSeen = {
+        housecode: "x"
+        unitcode: "0"
+      }
+      super(@config)
+
+    getLastX10Message : () ->
+      return Promise.resolve(@lastX10Message)
+
+    handleReceivedCmd: (lines) ->
+
+      # Parsing all-units-on/off
+      # example: 05/22 00:34:04 Rx PL House: P Func: All units on
+      # example: 05/22 00:34:04 Rx PL House: P Func: All units off
+      if m = /^\d{2}\/\d{2}\s+(?:\d{2}:){2}\d{2}\s(Rx|Tx)\s+(RF|PL)\s+House:\s+([a-pA-P])\s+Func:\s+All\s+(units|lights)\s+(on|off)$/m.exec(lines)
+        event = {
+          protocol:  m[2].toLowerCase()
+          direction: m[1].toLowerCase()
+          housecode: m[3].toLowerCase()
+          unitcode:  "*" + m[4]
+          state:     m[5].toLowerCase()
+        }
+        env.logger.debug("Event: " + JSON.stringify(event))
+        @_lastX10Message = event.housecode + "-" + event.state 
+        @emit "lastX10Message", @_lastX10Message
+        env.logger.debug("House #{event.housecode} unit #{unitcode} has state #{event.state}");
+       
+      # Parsing simple on/off (RF-style)
+      # 11/30 17:57:12 Tx RF HouseUnit: A10 Func: On
+      # 11/30 17:57:24 Tx RF HouseUnit: A10 Func: Off
+      if m = /^\d{2}\/\d{2}\s+(?:\d{2}:){2}\d{2}\s(Rx|Tx)\s+(RF|PL)\s+HouseUnit:\s+([a-pA-P])(\d{1,2})\s+Func:\s+(On|Off)/m.exec(lines) 
+        event = {
+          protocol:  m[2].toLowerCase()
+          direction: m[1].toLowerCase()
+          housecode: m[3].toLowerCase()
+          unitcode:  parseInt(m[4], 10)
+          state:     m[5].toLowerCase()
+        }
+        env.logger.debug("Event: " + JSON.stringify(event))
+        @_lastX10Message = event.housecode + event.unitcode + "-" + event.state 
+        @emit "lastX10Message", @_lastX10Message   
+
+      # Parsing simple on/off (PL-style)
+      #  example: 05/30 20:59:20 Tx PL HouseUnit: P1
+      #  example: 05/30 20:59:20 Tx PL House: P Func: On
+      #  example2: 23:42:03.196 [pimatic-mochad] 09/01 23:42:03 Tx PL HouseUnit: P1
+      #  example2: 23:42:03.196 [pimatic-mochad]>
+      #  example2: 23:42:03.198 [pimatic-mochad] 09/01 23:42:03 Tx PL House: P Func: On
+      else if m = /^\d{2}\/\d{2}\s+(?:\d{2}:){2}\d{2}\s(?:Rx|Tx)\s+(?:RF|PL)\s+HouseUnit:\s+([a-pA-P])(\d{1,2})/m.exec(lines)
+        @_lastSeen.housecode = m[1].toLowerCase()
+        @_lastSeen.unitcode  = parseInt(m[2], 10)
+        env.logger.debug("Event: " + JSON.stringify(@_lastSeen))
+
+      if @_lastSeen.housecode and @_lastSeen.unitcode and m = /\d{2}\/\d{2}\s+(?:\d{2}:){2}\d{2}\s(Rx|Tx)\s+(RF|PL)\s+House:\s+([a-pA-P])\s+Func:\s+(On|Off)$/m.exec(lines)
+        event = {
+          protocol:  m[2].toLowerCase()
+          direction: m[1].toLowerCase()
+          housecode: m[3].toLowerCase()
+          unitcode:  null # filled later
+          state:     m[5].toLowerCase()
+        }
+
+        if event.housecode == @_lastSeen.housecode
+          event.unitcode = @_lastSeen.unitcode
+          env.logger.debug("Event: " + JSON.stringify(event))
+          @_lastX10Message = event.housecode + event.unitcode + "-" + event.state 
+          @emit "lastX10Message", @_lastX10Message
+          
+      return true
+
   plugin = new MochadSimplePlugin
-  # and return it to the framework.
-  return plugin 
+  return plugin

@@ -1,13 +1,16 @@
 pimatic-mochad-simple
 ======================
 
-Connects [pimatic](http://pimatic.org) to [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) and monitors all X10 devices and sensors.
+Sends and recieves X10 commands and events from [pimatic](http://pimatic.org) through mochad [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) for X10 devices and sensors.
 
 #### Description
+This plugin allows you to recieve and send command to/from X10 devices.
 
-pimatic-mochad-simple gives you the abililty to monitor activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL) interfaces.  Mochad already translates the X10 activity to plain text format, this plugin simply listens to Mochad and logs that activity to a file. You can then use the [pimatic-log-reader](https://pimatic.org/plugins/pimatic-log-reader) plugin to parse the log and create devices and attributes and use the excellent pimatic rules engine to drive other things.
+pimatic-mochad-simple gives you the abililty to monitor activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL) interfaces.  Mochad already translates the X10 activity to plain text format, this plugin simply sets a device attribute to reflect the commands.  You can then use the excellent pimatic rules engine to drive other things.  
 
-X-10 has been around forever, I have used X-10 equipment for over 20 years. and there is lot inexpensive X-10 equipment in circulation. However, mantaining true state of X-10 devices in software has always been challenging and buggy. There are also connectivity issues and endless frustration with getting the X-10 signals especially over powerline to the right devices.  There is one area where X-10 shines and that is in RF remotes and sensors, the RF remotes last forever, signal can usually cover most mid-sized houses, repeaters are abundantly available.  Their motion sensors have been time tested and battries last for a year or so.
+X-10 has been around forever, I have used X-10 equipment for over 20 years. and there is lot inexpensive X-10 equipment in circulation. However, mantaining true state of X-10 devices in software has always been challenging and buggy. There are also connectivity issues and endless frustration with getting the X-10 signals especially over powerline to the right devices.  There is one area where X-10 shines and that is in RF remotes and sensors, the RF remotes last forever, signal can usually cover most mid-sized houses, repeaters are abundantly available.  Their motion sensors have been time tested and battries last for a year or so. 
+
+This plugin doesn't attempt to preserve the X10 states, simply passes the commands down to X10
 
 Examples:
  - Use inexpensive X-10 rf remotes to control devices
@@ -39,6 +42,8 @@ Examples:
 
 #### Configuration
 
+Plugin
+------
 Under "plugins" add:
 
 ```
@@ -46,75 +51,48 @@ Under "plugins" add:
   "plugin": "mochad-simple"
 }
 ```
-
-Add the following under "devices":
-
-```
-{
-  "id": "CM15Pro",
-  "class": "MochadSimple",
-  "name": "CM15Pro",
-  "host": "192.168.1.11",
-  "port": 1099,
-  "logfile:" "/var/logs/mochad.log"
-}   
-```
-
-#### Usage Example
-
-Turn the hallway light on/off based on motion sensor X-10 device I-1:
-
-Add the following under devices - make sure pimatic-log-reader plugin has been installed, and you have verified that the mochad-simple is successfully logging to the file.
+Devices
+-------
+This plugin has two devices
+MochadSimpleController  - used to recieve X10 commands
+MochadSimpleSwitch  - used to send on/off commands to X10 switches and dimmers
+Adde them under the devices section 
 
 ```
     {
-      "id": "hall-motion-sensor",
-      "name": "Hall Sensor",
-      "class": "LogWatcher",
-      "file": "/var/logs/mochad.log",
-      "attributes": [
-        {
-          "name": "TriggerState",
-          "type": "boolean",
-          "labels": [
-            "switched on",
-            "switched off"
-          ]
-        }
-      ],
-      "lines": [
-        {
-          "match": "HouseUnit: I1 Func: On",
-          "Presence": true
-        },
-        {
-          "match": "HouseUnit: I1 Func: Off",
-          "Presence": false
-        }
-      ]
-    },
+      "id": "CM15Pro",
+      "class": "MochadSimpleController",
+      "name": "CM15Pro",
+      "host": "192.168.1.11",
+      "port": 1099
+    },   
+    {
+      "id": "router",
+      "class": "MochadSimpleSwitch",
+      "name": "Den Light",
+      "housecode": "A",
+      "unitcode": 1,
+      "protocol": "rf"
+    }
 ```
 
-Add the following rules 
+The MochadSimpleController device is used to recieve X10 commands - this device exposes attribute 'lastX10Message' which contains the last X10 command. This attribute can then be used in rules.  
+The format of data in 'lastX10Message' attribute is a string: 
+ - Individual units - [houscode][unitcode]-[on/off] 
+ - All lights       - [housecode]-[on/off]
+
+
+#### Rules Examples
 
 ``` 
-  "when TriggerState of hall-motion-sensor is switched on then turn hall on"
+  "when lastX10Message of CM15Pro equals \"b1-on\" then turn Bedroom Fan on"
+  "when lastX10Message of CM15Pro equals \"b1-off\" then turn Bedroom Fan off"
+  "when lastX10Message of CM15Pro equals \"b-off\" then turn All Lights off"
  
-  "when TriggerState of hall-motion-sensor is switched off then turn hall off",
-
 ```
 
 Some interesting lines from mochad logs
-
-Respone to 'st' command to check status (mochad only remember status of commands it has seen, may not be true status of devices)
-```  
-          # 06/04 21:50:55 Device status
-          # 06/04 21:50:55 House A: 1=1
-          # 06/04 21:50:55 House P: 1=1,2=0,3=1,4=0,5=1,6=0,7=0,8=0,9=0,10=0,11=0,12=0,13=0,14=0,15=0,16=0
-          # 06/04 21:50:55 Security sensor status
-
-```
-
+ 
 Handling all-units-on/off
 ```
           #  example: 05/22 00:34:04 Rx PL House: P Func: All units on

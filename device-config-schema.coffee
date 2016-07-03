@@ -1,21 +1,13 @@
 module.exports = {
   title: "pimatic-mochad-simple device config schemas"
-  MochadSimple: {
-    title: "Mochad Monitor config options"
-    type: "object"
-    properties:
-      logfile:
-        description: "fully qualified path to the log file"
-        type: "string"
-        required: true
-  }
   MochadSimpleSwitch: {
-    title: "Simple Swich for Mochad"
+    title: "MochadSimpleSwitch config options"
     type: "object"
     properties:
       housecode:
         description: "X10 housecode"
         type: "string"
+        default: "A"
         required: true
         pattern: "^[A-Pa-p]$"
       unitcode:
@@ -27,7 +19,25 @@ module.exports = {
       protocol:
         description: "X10 protocol (RF/PL)"
         type: "string"
+        default: "1"
         default: "pl"
         enum: ["rf", "pl"]
+  }
+  MochadSimpleController: {
+    title: "MochadSimpleController config options"
+    type: "object"
+    properties:
+      buttons:
+        description: "Buttons of the keypad"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+            text:
+              type: "string"
   }
 }

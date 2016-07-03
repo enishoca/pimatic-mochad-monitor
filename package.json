@@ -1,6 +1,6 @@
 {  
     "name": "pimatic-mochad-simple",
-    "description": "Logs mochad data (an X10-controller controller) in file",  
+    "description": "Sends and recieves X10 commands and events through a mochad server", 
     "author": "Enis Hoca <enis.hoca@outlook.com> (https://github.com/enishoca)",
     "main": "mochad-simple.coffee",
     "license": "GPL-2.0",
@@ -19,7 +19,7 @@
       "home automation",
       "devices"
     ],
-    "version": "0.1.0",
+    "version": "0.5.0",
     "homepage": "https://github.com/enishoca/pimatic-mochad-simple",
     "private": false,
     "repository": {
