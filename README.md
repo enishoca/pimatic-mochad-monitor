@@ -1,7 +1,7 @@
 pimatic-mochad-simple
 ======================
 
-Sends and recieves X10 commands and events from [pimatic](http://pimatic.org) through mochad [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) for X10 devices and sensors.
+Sends and recieves X10 commands and events to/from [pimatic](http://pimatic.org) through mochad [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) for X10 devices and sensors.
 
 #### Description
 This plugin allows you to recieve and send command to/from X10 devices.
@@ -10,7 +10,7 @@ pimatic-mochad-simple gives you the abililty to monitor activity of your X-10 co
 
 X-10 has been around forever, I have used X-10 equipment for over 20 years. and there is lot inexpensive X-10 equipment in circulation. However, mantaining true state of X-10 devices in software has always been challenging and buggy. There are also connectivity issues and endless frustration with getting the X-10 signals especially over powerline to the right devices.  There is one area where X-10 shines and that is in RF remotes and sensors, the RF remotes last forever, signal can usually cover most mid-sized houses, repeaters are abundantly available.  Their motion sensors have been time tested and battries last for a year or so. 
 
-This plugin doesn't attempt to preserve the X10 states, simply passes the commands down to X10
+This plugin doesn't attempt to preserve the X10 states, simply passes the commands down to X10, and lets pimatic do the state management.
 
 Examples:
  - Use inexpensive X-10 rf remotes to control devices
@@ -40,10 +40,11 @@ Examples:
  [1] Or even OpenWrt (, etc) running Mochad                                    
 ```
 
-#### Configuration
+Configuration
+------------------
 
-Plugin
-------
+#### Plugin
+-----------
 Under "plugins" add:
 
 ```
@@ -53,12 +54,13 @@ Under "plugins" add:
   "port": 1099
 }
 ```
-Devices
--------
+#### Devices
+------------
 This plugin has two devices
-MochadSimpleController  - used to recieve X10 commands
-MochadSimpleSwitch  - used to send on/off commands to X10 switches and dimmers
-Adde them under the devices section 
+ -MochadSimpleController  - used to recieve X10 commands
+ -MochadSimpleSwitch  - used to send on/off commands to X10 switches and dimmers
+
+Add them under the devices section -
 
 ```
     {

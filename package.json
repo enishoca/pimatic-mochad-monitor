@@ -1,6 +1,6 @@
 {  
     "name": "pimatic-mochad-simple",
-    "description": "Sends and recieves X10 commands and events through a mochad server", 
+    "description": "Sends and recieve X10 commands and events through a mochad server", 
     "author": "Enis Hoca <enis.hoca@outlook.com> (https://github.com/enishoca)",
     "main": "mochad-simple.coffee",
     "license": "GPL-2.0",
