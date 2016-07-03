@@ -1,16 +1,16 @@
 pimatic-mochad-simple
 ======================
 
-Sends and recieves X10 commands and events to/from [pimatic](http://pimatic.org) through mochad [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) for X10 devices and sensors.
+Sends and recieves X10 commands and events to/from [pimatic](http://pimatic.org) using [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) for X10 devices and sensors.
 
 #### Description
 This plugin allows you to recieve and send command to/from X10 devices.
 
-pimatic-mochad-simple gives you the abililty to monitor activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL) interfaces.  Mochad already translates the X10 activity to plain text format, this plugin simply sets a device attribute to reflect the commands.  You can then use the excellent pimatic rules engine to drive other things.  
+pimatic-mochad-simple gives you the abililty to monitor activity of your X-10 connected devices and sensors via RF (433 Mhz) and powerline (PL) interfaces.  Mochad already translates the X10 activity to plain text format, this plugin simply sets a device attribute to reflect the commands.  You can then use the excellent pimatic rules engine to drive other things using this attribute.  
+
+This plugin also allows you to send commands to X10 - however it doesn't directly attempt to preserve the X10 states, simply passes the commands down to X10, and lets pimatic do the state management.  So for example if your X-10 light is initially turned on by pimatic, the pimatic UI will show the light as on, if you use another controller to turn it off, that status will not be reflected in Pimatic.  However if you want to see accurate status in pimatic you can do this by creating a rule.  The reason for this compromise is that most X-10 devices are natively one-way and status can impossible hard to track.  In a future version I will create a new device type which will be a buttons only, to match X10 remotes behaviour.
 
 X-10 has been around forever, I have used X-10 equipment for over 20 years. and there is lot inexpensive X-10 equipment in circulation. However, mantaining true state of X-10 devices in software has always been challenging and buggy. There are also connectivity issues and endless frustration with getting the X-10 signals especially over powerline to the right devices.  There is one area where X-10 shines and that is in RF remotes and sensors, the RF remotes last forever, signal can usually cover most mid-sized houses, repeaters are abundantly available.  Their motion sensors have been time tested and battries last for a year or so. 
-
-This plugin doesn't attempt to preserve the X10 states, simply passes the commands down to X10, and lets pimatic do the state management.
 
 Examples:
  - Use inexpensive X-10 rf remotes to control devices
