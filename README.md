@@ -48,7 +48,9 @@ Under "plugins" add:
 
 ```
 {
-  "plugin": "mochad-simple"
+  "plugin": "mochad-simple",
+  "host": "192.168.1.11",
+  "port": 1099
 }
 ```
 Devices
@@ -61,18 +63,22 @@ Adde them under the devices section
 ```
     {
       "id": "CM15Pro",
-      "class": "MochadSimpleController",
       "name": "CM15Pro",
-      "host": "192.168.1.11",
-      "port": 1099
+      "class": "MochadSimpleController",
+      "buttons": [
+        {
+          "id": "reset-mochad",
+          "text": "Reset Connection"
+        }
+      ]
     },   
     {
       "id": "router",
       "class": "MochadSimpleSwitch",
       "name": "Den Light",
-      "housecode": "A",
-      "unitcode": 1,
-      "protocol": "rf"
+      "housecode": "A", - X10 house code [A-P]
+      "unitcode": 1,    - X10 unit code [1-16]
+      "protocol": "rf"  - X10 protocol rf/pl
     }
 ```
 
