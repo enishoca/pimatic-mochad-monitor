@@ -64,13 +64,7 @@ Adde them under the devices section
     {
       "id": "CM15Pro",
       "name": "CM15Pro",
-      "class": "MochadSimpleController",
-      "buttons": [
-        {
-          "id": "reset-mochad",
-          "text": "Reset Connection"
-        }
-      ]
+      "class": "MochadSimpleController"
     },   
     {
       "id": "router",
@@ -84,7 +78,7 @@ Adde them under the devices section
 
 The MochadSimpleController device is used to recieve X10 commands - this device exposes attribute 'lastX10Message' which contains the last X10 command. This attribute can then be used in rules.  
 The format of data in 'lastX10Message' attribute is a string: 
- - Individual units - [houscode][unitcode]-[on/off] 
+ - Individual units - [housecode][unitcode]-[on/off] 
  - All lights       - [housecode]-[on/off]
 
 

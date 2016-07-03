@@ -30,7 +30,12 @@ module.exports = {
       buttons:
         description: "Buttons of the keypad"
         type: "array"
-        default: []
+        default: [
+          {
+            "id": "reset-mochad",
+            "text": "Reset Connection"
+          }
+        ]
         format: "table"
         items:
           type: "object"
