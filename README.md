@@ -57,8 +57,8 @@ Under "plugins" add:
 #### Devices
 ------------
 This plugin has two devices
- -MochadSimpleController  - used to recieve X10 commands
- -MochadSimpleSwitch  - used to send on/off commands to X10 switches and dimmers
+ - MochadSimpleController  - used to recieve X10 commands
+ - MochadSimpleSwitch  - used to send on/off commands to X10 switches and dimmers
 
 Add them under the devices section -
 
