@@ -1,41 +1,54 @@
-{  
-    "name": "pimatic-mochad-simple",
-    "description": "Sends and recieve X10 commands and events through a mochad server", 
-    "author": "Enis Hoca <enis.hoca@outlook.com> (https://github.com/enishoca)",
-    "main": "mochad-simple.coffee",
-    "license": "GPL-2.0",
-    "files": [
-      "README.md",
-      "LICENSE",
-      "mochad.coffee",
-      "mochad-simple-config-schema.coffee",
-      "device-config.schema.coffee"
-    ],
-    "keywords" : [
-      "pimatic",
-      "x10",
-      "sensors",
-      "remotes",
-      "automation",
-      "home automation",
-      "devices"
-    ],
-    "version": "0.5.3",
-    "homepage": "https://github.com/enishoca/pimatic-mochad-simple",
-    "private": false,
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/enishoca/pimatic-mochad-simple.git"
-    },
-    "configSchema": "mochad-simple-config-schema.coffee",
-    "dependencies": { 
-      "reconnect-net": "~0.0.0"
-    },
-    "peerDependencies": {
-        "pimatic": ">=0.9.0 <1.0.0"
-    },
-    "engines": {
-        "node": ">0.8.x",
-        "npm": ">1.1.x"
+{
+  "name": "pimatic-mochad-simple",
+  "description": "Sends and recieve X10 commands and events through a mochad server",
+  "author": {
+    "name": "Enis Hoca",
+    "email": "enis.hoca@outlook.com",
+    "url": "https://github.com/enishoca"
+  },
+  "main": "mochad-simple.coffee",
+  "license": "GPL-2.0",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "mochad.coffee",
+    "mochad-simple-config-schema.coffee",
+    "device-config-schema.coffee"
+  ],
+  "keywords": [
+    "pimatic",
+    "x10",
+    "sensors",
+    "remotes",
+    "automation",
+    "home automation",
+    "devices"
+  ],
+  "version": "0.5.7",
+  "homepage": "https://github.com/enishoca/pimatic-mochad-simple",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/enishoca/pimatic-mochad-simple.git"
+  },
+  "configSchema": "mochad-simple-config-schema.coffee",
+  "dependencies": {
+    "reconnect-net": "~0.0.0"
+  },
+  "peerDependencies": {
+    "pimatic": ">=0.9.0 <1.0.0"
+  },
+  "engines": {
+    "node": ">0.8.x",
+    "npm": ">1.1.x"
+  },
+  "bugs": {
+    "url": "https://github.com/enishoca/pimatic-mochad-simple/issues"
+  },
+  "maintainers": [
+    {
+      "name": "enishoca",
+      "email": "enishoca@outlook.com"
     }
+  ]
 }

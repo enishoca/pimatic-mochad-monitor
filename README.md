@@ -1,4 +1,4 @@
-pimatic-mochad-simple
+matic-mochad-simple
 ======================
 
 Sends and recieves X10 commands and events to/from [pimatic](http://pimatic.org) using [mochad](http://sourceforge.net/apps/mediawiki/mochad) (an X10-controller controller) for X10 devices and sensors.
@@ -40,9 +40,8 @@ Examples:
  [1] Or even OpenWrt (, etc) running Mochad                                    
 ```
 
-Configuration
+#### Configuration
 ------------------
-
 #### Plugin
 -----------
 Under "plugins" add:
@@ -120,5 +119,6 @@ Handling simple on/off (PL-style)
 #### Credits
 
 This plugin has been derived from [pimatic-mochad](https://pimatic.org/plugins/pimatic-mochad) plugin by [Patrick Kuijvenhoven](https://github.com/petski)  
+
 
 
