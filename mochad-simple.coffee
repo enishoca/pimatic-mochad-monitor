@@ -18,7 +18,7 @@ module.exports = (env) ->
       host = config.host
       port = config.port
 
-      env.logger.debug(
+      env.logger.info(
         "MochadSimple: init with mochad server #{host}@port #{port}"
       )
 
@@ -55,7 +55,7 @@ module.exports = (env) ->
       ).bind(@)).connect(port, host);
 
       reconnector.on 'connect', ((connection) ->
-        env.logger.debug("(re)Opened connection")
+        env.logger.info("(re)Opened connection")
         @connection = connection
       ).bind(@)
 
@@ -72,11 +72,14 @@ module.exports = (env) ->
 
     receiveCommandCallback: (cmdString) =>
       for cmdReceiver in @cmdReceivers
-        handled = cmdReceiver.handleReceivedCmd cmdString
-        break if handled
-
-      if (!handled)
-        env.logger.debug "received unhandled command string: #{cmdString}"
+        try
+          handled = cmdReceiver.handleReceivedCmd cmdString
+          break if handled
+        catch err
+          env.logger.error("Error processing recieved comand: " + err, err.stack)
+        finally
+          if (!handled)
+            env.logger.debug "received unhandled command string: #{cmdString}"
 
  
   # MochadSimpleSwitch sends commands to X.10 devices
@@ -139,8 +142,30 @@ module.exports = (env) ->
         env.logger.debug("Event: " + JSON.stringify(event))
         @_lastX10Message = event.housecode + "-" + event.state 
         @emit "lastX10Message", @_lastX10Message
-        env.logger.debug("House #{event.housecode} unit #{unitcode} has state #{event.state}");
-       
+        env.logger.info("lastX10Message: " + @_lastX10Message)
+
+      # Parsing security remotoes
+      # example: 07/04 02:07:52 Rx RFSEC Addr: 0xFE Func: Lights_On_SH624
+      # example: 07/04 02:46:46 07/04 02:46:47 Rx RFSEC Addr: 0xFE Func: Arm_Home_min_SH624
+      # example: 07/04 02:46:46 07/04 02:46:48 Rx RFSEC Addr: 0xFE Func: Disarm_SH624
+      # example: 07/04 02:46:46 07/04 02:46:49 Rx RFSEC Addr: 0xFE Func: Arm_Away_min_SH624
+      # example: 07/04 02:46:46 07/04 02:46:50 Rx RFSEC Addr: 0xFE Func: Disarm_SH624
+      # example: 07/04 02:46:46 07/04 02:46:51 Rx RFSEC Addr: 0xFE Func: Lights_On_SH624
+      # example: 07/04 02:46:46 07/04 02:46:52 Rx RFSEC Addr: 0xFE Func: Lights_Off_SH624
+
+      if m = /^\d{2}\/\d{2}\s+(?:\d{2}:){2}\d{2}\s(Rx|Tx)\s+(RFSEC)\s+Addr:\s+(0x[0-9a-fA-F]+)(\s+)Func:\s+(.+)$/m.exec(lines)
+        event = {
+          protocol:  m[2].toLowerCase()
+          direction: m[1].toLowerCase()
+          housecode: m[3].toLowerCase()
+          unitcode:  "*" + m[4]
+          state:     m[5].toLowerCase()
+        }
+        env.logger.debug("Event: " + JSON.stringify(event))
+        @_lastX10Message = event.housecode + "-" + event.state 
+        @emit "lastX10Message", @_lastX10Message
+        env.logger.debug("lastX10Message: " + @_lastX10Message)
+
       # Parsing simple on/off (RF-style)
       # 11/30 17:57:12 Tx RF HouseUnit: A10 Func: On
       # 11/30 17:57:24 Tx RF HouseUnit: A10 Func: Off
@@ -155,6 +180,7 @@ module.exports = (env) ->
         env.logger.debug("Event: " + JSON.stringify(event))
         @_lastX10Message = event.housecode + event.unitcode + "-" + event.state 
         @emit "lastX10Message", @_lastX10Message   
+        env.logger.debug("lastX10Message: " + @_lastX10Message)
 
       # Parsing simple on/off (PL-style)
       #  example: 05/30 20:59:20 Tx PL HouseUnit: P1
@@ -173,7 +199,7 @@ module.exports = (env) ->
           direction: m[1].toLowerCase()
           housecode: m[3].toLowerCase()
           unitcode:  null # filled later
-          state:     m[5].toLowerCase()
+          state:     m[4].toLowerCase()
         }
 
         if event.housecode == @_lastSeen.housecode
@@ -181,7 +207,7 @@ module.exports = (env) ->
           env.logger.debug("Event: " + JSON.stringify(event))
           @_lastX10Message = event.housecode + event.unitcode + "-" + event.state 
           @emit "lastX10Message", @_lastX10Message
-          
+          env.logger.debug("lastX10Message: " + @_lastX10Message)
       return true
 
   plugin = new MochadSimplePlugin
