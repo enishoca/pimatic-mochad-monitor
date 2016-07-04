@@ -6,9 +6,10 @@
     "license": "GPL-2.0",
     "files": [
       "README.md",
+      "LICENSE",
       "mochad.coffee",
-      "mochad-config-schema.coffee",
-      "mochad-device-schema.coffee"
+      "mochad-simple-config-schema.coffee",
+      "device-config.schema.coffee"
     ],
     "keywords" : [
       "pimatic",
@@ -19,7 +20,7 @@
       "home automation",
       "devices"
     ],
-    "version": "0.5.2",
+    "version": "0.5.3",
     "homepage": "https://github.com/enishoca/pimatic-mochad-simple",
     "private": false,
     "repository": {
