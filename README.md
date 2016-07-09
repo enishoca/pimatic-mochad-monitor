@@ -92,7 +92,12 @@ The format of data in 'lastX10Message' attribute is a string:
  
 ```
 
-Some interesting lines from mochad logs
+### Changelog
+0.6.0
+* Added support for security devices (door/windows sensors, security remotes)
+* Changed MochadSimpleController to Sensor
+
+###Some interesting lines from mochad logs
  
 Handling all-units-on/off
 ```
@@ -115,7 +120,17 @@ Handling simple on/off (PL-style)
           #  example2: 23:42:03.196 [pimatic-mochad]>
           #  example2: 23:42:03.198 [pimatic-mochad] 09/01 23:42:03 Tx PL House: P Func: On
 ```
- 
+Handling security devices
+```
+      # example: 07/04 02:07:52 Rx RFSEC Addr: 0xFE Func: Lights_On_SH624
+      # example: 07/04 02:46:46 07/04 02:46:47 Rx RFSEC Addr: 0xFE Func: Arm_Home_min_SH624
+      # example: 07/04 02:46:46 07/04 02:46:48 Rx RFSEC Addr: 0xFE Func: Disarm_SH624
+      # example: 07/04 02:46:46 07/04 02:46:49 Rx RFSEC Addr: 0xFE Func: Arm_Away_min_SH624
+      # example: 07/04 02:46:46 07/04 02:46:50 Rx RFSEC Addr: 0xFE Func: Disarm_SH624
+      # example: 07/04 02:46:46 07/04 02:46:51 Rx RFSEC Addr: 0xFE Func: Lights_On_SH624
+      # example: 07/04 02:46:46 07/04 02:46:52 Rx RFSEC Addr: 0xFE Func: Lights_Off_SH624
+```
+
 #### Credits
 
 This plugin has been derived from [pimatic-mochad](https://pimatic.org/plugins/pimatic-mochad) plugin by [Patrick Kuijvenhoven](https://github.com/petski)  

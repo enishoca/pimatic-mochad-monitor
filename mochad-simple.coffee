@@ -104,16 +104,19 @@ module.exports = (env) ->
     destroy: () ->
       super()
 
-  class MochadSimpleController extends env.devices.ButtonsDevice
+  class MochadSimpleController extends env.devices.Sensor
 
     attributes:
       lastX10Message:
         description: "Contains the last X10 message recieved"
         type: "string"
+        acronym: "Last X10 Message"
 
-    _lastX10Message = ""
+    _lastX10Message = "None"
 
     constructor: (@config) ->
+      @id = @config.id
+      @name = @config.name
       @_lastSeen = {
         housecode: "x"
         unitcode: "0"
@@ -124,7 +127,7 @@ module.exports = (env) ->
       super()
 
     getLastX10Message : () ->
-      return Promise.resolve(@lastX10Message)
+      return Promise.resolve(@_lastX10Message)
 
     handleReceivedCmd: (lines) ->
 
@@ -142,9 +145,9 @@ module.exports = (env) ->
         env.logger.debug("Event: " + JSON.stringify(event))
         @_lastX10Message = event.housecode + "-" + event.state 
         @emit "lastX10Message", @_lastX10Message
-        env.logger.info("lastX10Message: " + @_lastX10Message)
+        env.logger.debug("lastX10Message: " + @_lastX10Message)
 
-      # Parsing security remotoes
+      # Parsing security remotes / sensors
       # example: 07/04 02:07:52 Rx RFSEC Addr: 0xFE Func: Lights_On_SH624
       # example: 07/04 02:46:46 07/04 02:46:47 Rx RFSEC Addr: 0xFE Func: Arm_Home_min_SH624
       # example: 07/04 02:46:46 07/04 02:46:48 Rx RFSEC Addr: 0xFE Func: Disarm_SH624
